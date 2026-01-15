@@ -6,19 +6,17 @@ import { fileURLToPath } from "url";
 import pdfjsLib from "pdfjs-dist/legacy/build/pdf.js";
 
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { PineconeStore } from "@langchain/pinecone";
+import { QdrantVectorStore } from "@langchain/qdrant";
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
-
-
-import { index } from "../config/pinecone.js";
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log("🔥 Using LOCAL Ollama embeddings");
+console.log("🔥 Using LOCAL Ollama embeddings + Qdrant");
 
+// 📄 PDF text extractor
 async function extractTextFromPDF(pdfPath) {
   const data = new Uint8Array(fs.readFileSync(pdfPath));
   const pdf = await pdfjsLib.getDocument({ data }).promise;
@@ -33,36 +31,36 @@ async function extractTextFromPDF(pdfPath) {
 }
 
 async function ingest() {
-  const pdfPath = path.join(__dirname, "../../data/myData.pdf");
-
+  const pdfPath = path.join(__dirname, "../../data/Umang_data.pdf");
   console.log("📄 PDF PATH:", pdfPath);
 
   if (!fs.existsSync(pdfPath)) {
-    throw new Error("PDF not found");
+    throw new Error("❌ PDF not found");
   }
 
   // 1️⃣ Extract text
   const text = await extractTextFromPDF(pdfPath);
 
-  // 2️⃣ Chunking
+  // 2️⃣ Chunk text
   const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200,
+    chunkSize: 500,
+    chunkOverlap: 100,
   });
 
   const docs = await splitter.createDocuments([text]);
 
-  // 3️⃣ LOCAL Embeddings (NO API, NO QUOTA)
+  // 3️⃣ Local embeddings (Ollama)
   const embeddings = new OllamaEmbeddings({
-    model: "nomic-embed-text",
+    model: "nomic-embed-text", // 768-dim
   });
 
-  // 4️⃣ Store in Pinecone
-  await PineconeStore.fromDocuments(docs, embeddings, {
-    pineconeIndex: index,
+  // 4️⃣ Store in Qdrant
+  await QdrantVectorStore.fromDocuments(docs, embeddings, {
+    url: "http://localhost:6333",
+    collectionName: "umang_docs",
   });
 
-  console.log("✅ Vector DB created using LOCAL Ollama embeddings");
+  console.log("✅ Vector DB created successfully in Qdrant");
 }
 
-ingest();
+ingest().catch(console.error);

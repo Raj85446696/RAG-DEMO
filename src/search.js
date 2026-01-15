@@ -1,17 +1,26 @@
-import { PineconeStore } from "langchain/vectorstores/pinecone";
-import { OllamaEmbeddings } from "langchain/embeddings/ollama";
-import { index } from "./config/pinecone.js";
+import dotenv from "dotenv";
+import { QdrantVectorStore } from "@langchain/qdrant";
+import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 
-export async function search(query) {
+dotenv.config();
+
+export async function search(query, k = 3) {
+  // 1️⃣ Same embeddings used during ingest
   const embeddings = new OllamaEmbeddings({
     model: "nomic-embed-text",
   });
 
-  const vectorStore = await PineconeStore.fromExistingIndex(
+  // 2️⃣ Connect to existing Qdrant collection
+  const vectorStore = await QdrantVectorStore.fromExistingCollection(
     embeddings,
-    { pineconeIndex: index }
+    {
+      url: "http://localhost:6333",
+      collectionName: "umang_docs",
+    }
   );
 
-  const results = await vectorStore.similaritySearch(query, 3);
+  // 3️⃣ Similarity search
+  const results = await vectorStore.similaritySearch(query, k);
+
   return results;
 }

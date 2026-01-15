@@ -1,14 +1,7 @@
-import express from "express";
-import { chat } from "./chat.js";
+import app from './app.js';
 
-const app = express();
-app.use(express.json());
+const PORT = process.env.PORT || 8001;
 
-app.post("/chat", async (req, res) => {
-  const answer = await chat(req.body.question);
-  res.json({ answer });
-});
-
-app.listen(8000, () =>
-  console.log("🚀 RAG server running on port 8000")
+app.listen(PORT, () =>
+  console.log(`🚀RAG server running on port ${PORT}`)
 );

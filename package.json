@@ -5,19 +5,26 @@
   "type": "module",
   "scripts": {
     "ingest": "node src/ingest/ingest.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@pinecone-database/pinecone": "^6.1.3",
+    "@langchain/qdrant": "^1.0.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1",
+    "express": "^5.2.1",            
+    "groq-sdk": "^0.37.0",
     "langchain": "^0.1.16",
     "ollama": "^0.6.3",
-    "pdfjs-dist": "^3.11.174"
+    "pdfjs-dist": "^3.11.174",
+    "qdrant-client": "^0.0.1"           
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "supertest": "^7.2.2"
   }
 }
